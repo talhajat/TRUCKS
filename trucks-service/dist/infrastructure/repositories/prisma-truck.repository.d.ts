@@ -1,0 +1,35 @@
+import { PrismaService } from '../database/prisma.service';
+import { ITruckRepository, TruckSearchCriteria } from '../../domain/repositories/truck.repository';
+import { Truck } from '../../domain/entities/truck.entity';
+import { VehicleId } from '../../domain/value-objects/vehicle-id.vo';
+import { VIN } from '../../domain/value-objects/vin.vo';
+export declare class PrismaTruckRepository implements ITruckRepository {
+    private readonly prisma;
+    constructor(prisma: PrismaService);
+    save(truck: Truck): Promise<void>;
+    update(truck: Truck): Promise<void>;
+    findById(id: string): Promise<Truck | null>;
+    findByVehicleId(vehicleId: VehicleId): Promise<Truck | null>;
+    findByVin(vin: VIN): Promise<Truck | null>;
+    findAll(): Promise<Truck[]>;
+    findByStatus(status: string): Promise<Truck[]>;
+    findByDriverId(driverId: string): Promise<Truck[]>;
+    findByLocation(locationId: string): Promise<Truck[]>;
+    delete(id: string): Promise<void>;
+    existsByVehicleId(vehicleId: VehicleId): Promise<boolean>;
+    existsByVin(vin: VIN): Promise<boolean>;
+    findMaintenanceDue(odometerThreshold?: number, daysThreshold?: number): Promise<Truck[]>;
+    findWithExpiringDocuments(daysAhead: number): Promise<Truck[]>;
+    search(criteria: TruckSearchCriteria): Promise<Truck[]>;
+    private mapToDomainEntity;
+    private mapTruckStatus;
+    private mapFromTruckStatus;
+    private mapTransmissionType;
+    private mapFromTransmissionType;
+    private mapOwnershipType;
+    private mapFromOwnershipType;
+    private mapDistanceUnit;
+    private mapFromDistanceUnit;
+    private mapDocumentType;
+    private mapFromDocumentType;
+}
