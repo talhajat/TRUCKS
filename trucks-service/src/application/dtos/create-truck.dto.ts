@@ -40,7 +40,8 @@ enum OwnershipType {
 }
 
 /**
- * Valid truck statuses
+ * Valid truck statuses - Simplified for two core features
+ * Note: No "assigned" status since driver assignment is handled by driver-service
  */
 enum TruckStatus {
   AVAILABLE = 'available',

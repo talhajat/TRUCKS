@@ -10,204 +10,71 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// TRUCKS-SERVICE SCHEMA
+// Cleaned up to support ONLY the two core features:
+// 1. Truck Creation (form → database)
+// 2. Truck Display (database → table)
+
 model Truck {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Identification & Basic Details
-  vehicleId String  @unique // Unit Number (e.g., T101)
+  // Identification & Basic Details (Required for table display)
+  vehicleId String  @unique // Unit Number (e.g., T101) - maps to ID/UNIT column
   name      String? // User-friendly name
-  vin       String  @unique
-  make      String
-  model     String
-  year      Int
+  vin       String  @unique // maps to VIN column
+  make      String  // maps to MAKE & MODEL column (part 1)
+  model     String  // maps to MAKE & MODEL column (part 2)
+  year      Int     // maps to YEAR column
   color     String?
 
-  // Engine & Powertrain
+  // Engine & Powertrain (from form)
   engineMake       String?
   engineModel      String?
   horsepower       Int?
   transmissionType TransmissionType @default(MANUAL)
   numGears         Int?
 
-  // Ownership & Financials
+  // Ownership & Financials (from form)
   ownershipType OwnershipType @default(OWNED)
   purchaseDate  DateTime?
   leaseEndDate  DateTime?
   purchasePrice Decimal?
 
-  // Registration & Compliance
+  // Registration & Compliance (from form)
   licensePlate     String?
   issuingState     String?
   registrationExp  DateTime?
   insurancePolicy  String?
   insuranceExp     DateTime?
-  jurisdiction     String    @default("IFTA")
+  jurisdiction     String @default("IFTA")
   gvwr             Int? // Gross Vehicle Weight Rating (lbs)
   gcwr             Int? // Gross Combined Weight Rating (lbs)
   dotNumber        String?
 
-  // Status & Location
-  status          TruckStatus @default(available)
-  currentLocation String?
-  assignedYardId  String?
-  assignedYard    Location?   @relation(fields: [assignedYardId], references: [id])
+  // Status & Location (Required for table display)
+  status          TruckStatus @default(available) // maps to STATUS column
+  currentLocation String? // maps to CURRENT LOCATION column
+  assignedYardId  String? // Simple ID reference (no foreign key)
 
-  // Operational Data
-  odometer     Int? // in miles or km
+  // Operational Data (Required for table display)
+  odometer     Int? // maps to ODOMETER/ENG HRS column (part 1)
   odometerUnit DistanceUnit @default(MILES)
-  engineHours  Int? // in hours
+  engineHours  Int? // Always displayed as "NA" in table
 
-  // Relationships
-  currentDriverId     String?
-  currentDriver       Driver?  @relation(fields: [currentDriverId], references: [id])
-  attachedTrailerId   String?  @unique
-  attachedTrailer     Trailer? @relation("TruckTrailer")
-  currentLoadId       String?
-  currentLoad         Load?    @relation(fields: [currentLoadId], references: [id])
+  // Simple Trailer Reference (Required for table display)
+  // Store ONLY trailer ID - no complex relationship
+  // Maps to ATTACHED TRAILER column
+  attachedTrailerId String? // Show "None" if null, trailer ID if assigned
 
-  // Documents
+  // Documents (keep for form uploads)
   documents TruckDocument[]
 
   // Audit
   lastUpdated DateTime @default(now())
 
   @@map("trucks")
-}
-
-model Trailer {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Basic Details
-  trailerId String @unique
-  name      String?
-  vin       String @unique
-  year      Int?
-
-  // Trailer Specifications
-  trailerType String? // dry_van, reefer, flatbed, tanker
-  length      Int? // in feet
-  capacity    Int? // in lbs
-  axleCount   Int?
-
-  // Status & Location
-  status          TrailerStatus @default(AVAILABLE)
-  currentLocation String?
-  assignedYardId  String?
-  assignedYard    Location?     @relation(fields: [assignedYardId], references: [id])
-
-  // Relationships
-  attachedTruckId String?  @unique
-  attachedTruck   Truck?   @relation("TruckTrailer", fields: [attachedTruckId], references: [id])
-  currentLoadId   String?
-  currentLoad     Load?   @relation(fields: [currentLoadId], references: [id])
-
-  // Audit
-  lastUpdated DateTime @default(now())
-
-  @@map("trailers")
-}
-
-model Driver {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Basic Info
-  driverId String @unique
-  name     String
-  email    String?
-  phone    String?
-
-  // Status
-  status DriverStatus @default(AVAILABLE)
-
-  // Location
-  operatingBaseCity  String?
-  operatingBaseState String?
-  assignedFleetId    String?
-
-  // Relationships
-  assignedTrucks Truck[]
-  currentLoadId  String?
-  currentLoad    Load?   @relation(fields: [currentLoadId], references: [id])
-
-  // Audit
-  lastUpdated DateTime @default(now())
-
-  @@map("drivers")
-}
-
-model Load {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Basic Info
-  loadId         String     @unique
-  reference      String
-  status         LoadStatus @default(PENDING)
-  trackingNumber String     @unique
-
-  // Customer
-  customerId   String
-  customerName String
-
-  // Route
-  originAddress      String
-  originLat          Float?
-  originLng          Float?
-  destinationAddress String
-  destinationLat     Float?
-  destinationLng     Float?
-
-  // Schedule
-  scheduledPickup   DateTime
-  scheduledDelivery DateTime
-
-  // Assignments
-  assignedTrucks   Truck[]
-  assignedTrailers Trailer[]
-  assignedDrivers  Driver[]
-
-  // Audit
-  lastUpdated DateTime @default(now())
-
-  @@map("loads")
-}
-
-model Location {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Basic Info
-  locationId String @unique
-  name       String
-  address    String?
-  city       String?
-  state      String?
-  zipCode    String?
-  country    String? @default("US")
-
-  // Coordinates
-  latitude  Float?
-  longitude Float?
-
-  // Type
-  locationType LocationType @default(YARD)
-
-  // Relationships
-  assignedTrucks   Truck[]
-  assignedTrailers Trailer[]
-
-  // Audit
-  lastUpdated DateTime @default(now())
-
-  @@map("locations")
 }
 
 model TruckDocument {
@@ -236,38 +103,11 @@ model TruckDocument {
   @@map("truck_documents")
 }
 
-// Enums
+// ENUMS - Keep only truck-related enums
 enum TruckStatus {
   available
-  assigned
   maintenance
   out_of_service
-}
-
-enum TrailerStatus {
-  AVAILABLE
-  ASSIGNED
-  MAINTENANCE
-  OUT_OF_SERVICE
-}
-
-enum DriverStatus {
-  AVAILABLE
-  DRIVING
-  ON_BREAK
-  LOADING
-  UNLOADING
-  MAINTENANCE
-  AWAY
-  OFF_DUTY
-}
-
-enum LoadStatus {
-  PENDING
-  ASSIGNED
-  IN_TRANSIT
-  DELIVERED
-  CANCELLED
 }
 
 enum TransmissionType {
@@ -285,14 +125,6 @@ enum OwnershipType {
 enum DistanceUnit {
   MILES
   KILOMETERS
-}
-
-enum LocationType {
-  YARD
-  TERMINAL
-  SHOP
-  CUSTOMER_SITE
-  DROP_YARD
 }
 
 enum DocumentType {

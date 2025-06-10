@@ -23,11 +23,11 @@ import {
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiResponse, ApiConsumes } from '@nestjs/swagger';
 import { CreateTruckUseCase, GetAllTrucksUseCase } from '../../application/use-cases';
-import { 
-  CreateTruckDto, 
-  CreateTruckResponseDto, 
-  GetAllTrucksResponseDto,
-  ErrorResponseDto 
+import {
+  CreateTruckDto,
+  CreateTruckResponseDto,
+  TruckTableResponseDto,
+  ErrorResponseDto
 } from '../../application/dtos';
 
 /**
@@ -47,21 +47,22 @@ export class TrucksController {
    * Retrieve all trucks for the frontend table display
    */
   @Get()
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Get all trucks',
-    description: 'Retrieves all trucks in the system for table display'
+    description: 'Retrieves all trucks in the system for table display with exact field mapping'
   })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'Successfully retrieved trucks',
-    type: GetAllTrucksResponseDto
+    type: [TruckTableResponseDto],
+    isArray: true
   })
-  @ApiResponse({ 
-    status: 500, 
+  @ApiResponse({
+    status: 500,
     description: 'Internal server error',
     type: ErrorResponseDto
   })
-  async getAllTrucks(): Promise<GetAllTrucksResponseDto> {
+  async getAllTrucks(): Promise<{ data: TruckTableResponseDto[] }> {
     try {
       return await this.getAllTrucksUseCase.execute();
     } catch (error) {

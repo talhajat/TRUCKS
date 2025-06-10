@@ -1,16 +1,23 @@
 /**
- * GET ALL TRUCKS USE CASE
- * 
+ * GET ALL TRUCKS USE CASE - SIMPLIFIED FOR TWO CORE FEATURES
+ *
  * This use case handles retrieving all trucks for the frontend table display.
- * Think of this as the "data fetcher" that gets truck information from the database
- * and formats it exactly how the frontend expects to receive it.
- * 
- * This ensures the frontend gets properly formatted data for the trucks table.
+ * It implements the EXACT field mapping requirements:
+ *
+ * - ID/UNIT → vehicleId
+ * - MAKE & MODEL → make + model
+ * - YEAR → year
+ * - VIN → vin
+ * - STATUS → status
+ * - CURRENT DRIVER → Always "N/A" (null in response)
+ * - ATTACHED TRAILER → attachedTrailerId or "None"
+ * - CURRENT LOCATION → currentLocation
+ * - ODOMETER/ENG HRS → odometer + "NA" for engine hours
  */
 
 import { Injectable, Inject } from '@nestjs/common';
 import { ITruckRepository } from '../../domain/repositories/truck.repository';
-import { TruckListItemDto, GetAllTrucksResponseDto } from '../dtos/truck-response.dto';
+import { TruckTableResponseDto } from '../dtos/truck-table-response.dto';
 
 // Token for dependency injection
 export const TRUCK_REPOSITORY_TOKEN = 'ITruckRepository';
@@ -24,33 +31,33 @@ export class GetAllTrucksUseCase {
 
   /**
    * Execute the get all trucks use case
-   * This retrieves all trucks and formats them for the frontend
+   * Returns data formatted for the trucks table display
    */
-  async execute(): Promise<GetAllTrucksResponseDto> {
+  async execute(): Promise<{ data: TruckTableResponseDto[] }> {
     try {
       // Get all trucks from the repository
       const trucks = await this.truckRepository.findAll();
 
-      // Convert domain entities to frontend format
-      const truckListItems: TruckListItemDto[] = trucks.map(truck => ({
+      // Convert domain entities to table display format
+      const truckTableData = trucks.map(truck => ({
         id: truck.id,
-        name: truck.name || `Unit ${truck.vehicleIdValue}`,
+        name: truck.vehicleIdValue, // Frontend expects 'name' but we use vehicleId
         type: 'truck' as const,
         status: truck.status,
-        currentLocation: truck.currentLocation || 'Unknown Location',
+        currentLocation: truck.currentLocation || null,
         year: truck.year,
         vin: truck.vinValue,
         make: truck.make,
         model: truck.model,
-        driverId: truck.currentDriverId,
-        odometer: truck.odometer || 0,
-        engineHours: truck.engineHours || 0,
-        attachedTrailerId: truck.attachedTrailerId,
+        driverId: null, // Always null - displays as "N/A" in table
+        odometer: truck.odometer || null,
+        engineHours: null, // Always null - displays as "NA" in table
+        attachedTrailerId: truck.attachedTrailerId || null,
         lastUpdated: truck.lastUpdated.toISOString(),
       }));
 
       return {
-        data: truckListItems,
+        data: truckTableData,
       };
     } catch (error) {
       throw new Error(`Failed to retrieve trucks: ${error.message}`);

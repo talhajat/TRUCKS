@@ -75,10 +75,8 @@ export class PrismaTruckRepository implements ITruckRepository {
           odometerUnit: this.mapDistanceUnit(props.odometerUnit),
           engineHours: props.engineHours,
           
-          // Relationships
-          currentDriverId: props.currentDriverId,
+          // Simple Trailer Reference
           attachedTrailerId: props.attachedTrailerId,
-          currentLoadId: props.currentLoadId,
           
           // Audit
           lastUpdated: props.lastUpdated,
@@ -158,10 +156,8 @@ export class PrismaTruckRepository implements ITruckRepository {
           odometerUnit: this.mapDistanceUnit(props.odometerUnit),
           engineHours: props.engineHours,
           
-          // Relationships
-          currentDriverId: props.currentDriverId,
+          // Simple Trailer Reference
           attachedTrailerId: props.attachedTrailerId,
-          currentLoadId: props.currentLoadId,
           
           // Audit
           lastUpdated: props.lastUpdated,
@@ -183,7 +179,6 @@ export class PrismaTruckRepository implements ITruckRepository {
         where: { id },
         include: {
           documents: true,
-          assignedYard: true,
         },
       });
 
@@ -207,7 +202,6 @@ export class PrismaTruckRepository implements ITruckRepository {
         where: { vehicleId: vehicleId.value },
         include: {
           documents: true,
-          assignedYard: true,
         },
       });
 
@@ -231,7 +225,6 @@ export class PrismaTruckRepository implements ITruckRepository {
         where: { vin: vin.value },
         include: {
           documents: true,
-          assignedYard: true,
         },
       });
 
@@ -254,7 +247,6 @@ export class PrismaTruckRepository implements ITruckRepository {
       const trucksData = await this.prisma.truck.findMany({
         include: {
           documents: true,
-          assignedYard: true,
         },
         orderBy: {
           vehicleId: 'asc', // Sort by vehicle ID (T101, T102, etc.)
@@ -274,12 +266,11 @@ export class PrismaTruckRepository implements ITruckRepository {
   async findByStatus(status: string): Promise<Truck[]> {
     try {
       const trucksData = await this.prisma.truck.findMany({
-        where: { 
-          status: this.mapTruckStatus(status) 
+        where: {
+          status: this.mapTruckStatus(status)
         },
         include: {
           documents: true,
-          assignedYard: true,
         },
         orderBy: {
           vehicleId: 'asc',
@@ -297,22 +288,9 @@ export class PrismaTruckRepository implements ITruckRepository {
    * Like asking "which trucks is John Smith currently driving?"
    */
   async findByDriverId(driverId: string): Promise<Truck[]> {
-    try {
-      const trucksData = await this.prisma.truck.findMany({
-        where: { currentDriverId: driverId },
-        include: {
-          documents: true,
-          assignedYard: true,
-        },
-        orderBy: {
-          vehicleId: 'asc',
-        },
-      });
-
-      return trucksData.map(truckData => this.mapToDomainEntity(truckData));
-    } catch (error) {
-      throw new Error(`Failed to find trucks by driver ID: ${error.message}`);
-    }
+    // This method is no longer needed since we don't track drivers in trucks-service
+    // Always return empty array
+    return [];
   }
 
   /**
@@ -325,7 +303,6 @@ export class PrismaTruckRepository implements ITruckRepository {
         where: { assignedYardId: locationId },
         include: {
           documents: true,
-          assignedYard: true,
         },
         orderBy: {
           vehicleId: 'asc',
@@ -400,7 +377,6 @@ export class PrismaTruckRepository implements ITruckRepository {
         },
         include: {
           documents: true,
-          assignedYard: true,
         },
         orderBy: {
           odometer: 'desc',
@@ -431,7 +407,6 @@ export class PrismaTruckRepository implements ITruckRepository {
         },
         include: {
           documents: true,
-          assignedYard: true,
         },
         orderBy: {
           registrationExp: 'asc',
@@ -467,9 +442,7 @@ export class PrismaTruckRepository implements ITruckRepository {
       if (criteria.locationId) {
         where.assignedYardId = criteria.locationId;
       }
-      if (criteria.driverId) {
-        where.currentDriverId = criteria.driverId;
-      }
+      // Skip driver criteria since we don't track drivers
       if (criteria.minOdometer || criteria.maxOdometer) {
         where.odometer = {};
         if (criteria.minOdometer) {
@@ -487,7 +460,6 @@ export class PrismaTruckRepository implements ITruckRepository {
         where,
         include: {
           documents: true,
-          assignedYard: true,
         },
         orderBy: {
           vehicleId: 'asc',
@@ -524,8 +496,8 @@ export class PrismaTruckRepository implements ITruckRepository {
       })
     ) || [];
 
-    // Get location name
-    const currentLocation = truckData.assignedYard?.name || truckData.currentLocation;
+    // Use currentLocation directly since we don't have assignedYard relation
+    const currentLocation = truckData.currentLocation;
 
     // Create truck properties
     const truckProps: TruckProps = {
@@ -560,9 +532,7 @@ export class PrismaTruckRepository implements ITruckRepository {
       odometer: truckData.odometer,
       odometerUnit: this.mapFromDistanceUnit(truckData.odometerUnit),
       engineHours: truckData.engineHours,
-      currentDriverId: truckData.currentDriverId,
       attachedTrailerId: truckData.attachedTrailerId,
-      currentLoadId: truckData.currentLoadId,
       documents,
       createdAt: truckData.createdAt,
       updatedAt: truckData.updatedAt,

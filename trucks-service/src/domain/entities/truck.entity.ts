@@ -1,9 +1,20 @@
 /**
- * TRUCK AGGREGATE ROOT
+ * TRUCK AGGREGATE ROOT - SIMPLIFIED FOR TRUCKS-SERVICE
  *
- * This is the main business entity that represents a Truck in our domain.
- * It encapsulates all truck-related business logic and maintains invariants.
- * Following DDD principles, this aggregate root controls access to its children.
+ * This entity supports EXACTLY TWO FEATURES:
+ * 1. Truck Creation (form → database)
+ * 2. Truck Display (database → table)
+ *
+ * Field mapping for table display:
+ * - vehicleId → ID/UNIT column
+ * - make + model → MAKE & MODEL column
+ * - year → YEAR column
+ * - vin → VIN column
+ * - status → STATUS column
+ * - "N/A" → CURRENT DRIVER column (always)
+ * - attachedTrailerId → ATTACHED TRAILER column (show "None" if null)
+ * - currentLocation → CURRENT LOCATION column
+ * - odometer → ODOMETER/ENG HRS column (format: "X mi/NA")
  */
 
 import { VehicleId } from '../value-objects/vehicle-id.vo';
@@ -11,29 +22,29 @@ import { VIN } from '../value-objects/vin.vo';
 import { TruckDocument } from './truck-document.entity';
 
 export interface TruckProps {
-  // Identification & Basic Details
-  vehicleId: VehicleId;        // Unit Number (e.g., T101)
+  // Identification & Basic Details (Required for table display)
+  vehicleId: VehicleId;        // → ID/UNIT column
   name?: string;               // User-friendly name
-  vin: VIN;                    // Vehicle Identification Number
-  make: string;                // Manufacturer
-  model: string;               // Model
-  year: number;                // Manufacturing year
-  color?: string;              // Truck color
+  vin: VIN;                    // → VIN column
+  make: string;                // → MAKE & MODEL column (part 1)
+  model: string;               // → MAKE & MODEL column (part 2)
+  year: number;                // → YEAR column
+  color?: string;              // From form
 
-  // Engine & Powertrain
+  // Engine & Powertrain (from form)
   engineMake?: string;
   engineModel?: string;
   horsepower?: number;
   transmissionType: string;    // manual, automatic, automated_manual
   numGears?: number;
 
-  // Ownership & Financials
+  // Ownership & Financials (from form)
   ownershipType: string;       // owned, leased, rented
   purchaseDate?: Date;
   leaseEndDate?: Date;
   purchasePrice?: number;
 
-  // Registration & Compliance
+  // Registration & Compliance (from form)
   licensePlate?: string;
   issuingState?: string;
   registrationExp?: Date;
@@ -44,22 +55,20 @@ export interface TruckProps {
   gcwr?: number;              // Gross Combined Weight Rating (lbs)
   dotNumber?: string;
 
-  // Status & Location
-  status: string;             // available, assigned, maintenance, out_of_service
-  currentLocation?: string;
-  assignedYardId?: string;
+  // Status & Location (Required for table display)
+  status: string;             // → STATUS column (available, maintenance, out_of_service)
+  currentLocation?: string;   // → CURRENT LOCATION column
+  assignedYardId?: string;    // Simple ID reference (no foreign key)
 
-  // Operational Data
-  odometer?: number;
+  // Operational Data (Required for table display)
+  odometer?: number;          // → ODOMETER/ENG HRS column (part 1)
   odometerUnit: string;       // miles, kilometers
-  engineHours?: number;
+  engineHours?: number;       // Always displayed as "NA" in table
 
-  // Relationships
-  currentDriverId?: string;
-  attachedTrailerId?: string;
-  currentLoadId?: string;
+  // Simple Trailer Reference (Required for table display)
+  attachedTrailerId?: string; // → ATTACHED TRAILER column (show "None" if null)
 
-  // Documents
+  // Documents (from form uploads)
   documents?: TruckDocument[];
 
   // Audit
@@ -154,7 +163,7 @@ export class Truck {
     }
 
     // Status validation
-    const validStatuses = ['available', 'assigned', 'maintenance', 'out_of_service'];
+    const validStatuses = ['available', 'maintenance', 'out_of_service'];
     if (!validStatuses.includes(this._props.status)) {
       throw new Error(`Invalid status. Must be one of: ${validStatuses.join(', ')}`);
     }
@@ -173,33 +182,11 @@ export class Truck {
   }
 
   /**
-   * BUSINESS METHODS
+   * BUSINESS METHODS - SIMPLIFIED FOR TWO CORE FEATURES
    */
 
   /**
-   * Assign truck to a driver
-   */
-  public assignDriver(driverId: string): void {
-    if (this._props.status !== 'available') {
-      throw new Error('Cannot assign driver to truck that is not available');
-    }
-    
-    this._props.currentDriverId = driverId;
-    this._props.status = 'assigned';
-    this.updateTimestamp();
-  }
-
-  /**
-   * Unassign driver from truck
-   */
-  public unassignDriver(): void {
-    this._props.currentDriverId = undefined;
-    this._props.status = 'available';
-    this.updateTimestamp();
-  }
-
-  /**
-   * Attach trailer to truck
+   * Attach trailer to truck (for default assigned trailer)
    */
   public attachTrailer(trailerId: string): void {
     if (this._props.status === 'maintenance' || this._props.status === 'out_of_service') {
@@ -238,14 +225,9 @@ export class Truck {
    * Change truck status
    */
   public changeStatus(newStatus: string): void {
-    const validStatuses = ['available', 'assigned', 'maintenance', 'out_of_service'];
+    const validStatuses = ['available', 'maintenance', 'out_of_service'];
     if (!validStatuses.includes(newStatus)) {
       throw new Error(`Invalid status. Must be one of: ${validStatuses.join(', ')}`);
-    }
-
-    // Business rule: Cannot change to assigned if driver is not assigned
-    if (newStatus === 'assigned' && !this._props.currentDriverId) {
-      throw new Error('Cannot set status to assigned without a driver');
     }
 
     this._props.status = newStatus;
@@ -419,10 +401,6 @@ export class Truck {
     return this._props.engineHours;
   }
 
-  get currentDriverId(): string | undefined {
-    return this._props.currentDriverId;
-  }
-
   get attachedTrailerId(): string | undefined {
     return this._props.attachedTrailerId;
   }
@@ -451,17 +429,10 @@ export class Truck {
   }
 
   /**
-   * Check if truck is available for assignment
+   * Check if truck is available
    */
   public isAvailable(): boolean {
     return this._props.status === 'available';
-  }
-
-  /**
-   * Check if truck is assigned
-   */
-  public isAssigned(): boolean {
-    return this._props.status === 'assigned';
   }
 
   /**

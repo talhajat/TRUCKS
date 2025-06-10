@@ -86,9 +86,7 @@ export class TruckDomainService {
       odometer: truckData.odometer,
       odometerUnit: truckData.odometerUnit || 'miles',
       engineHours: truckData.engineHours,
-      currentDriverId: truckData.currentDriverId,
       attachedTrailerId: truckData.attachedTrailerId,
-      currentLoadId: truckData.currentLoadId,
       documents: [],
       lastUpdated: new Date(),
     };
