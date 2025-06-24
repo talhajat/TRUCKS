@@ -1,4 +1,4 @@
-/**
+ /**
  * CREATE TRUCK DTO
  * 
  * This defines the structure and validation rules for creating a new truck.
@@ -46,7 +46,7 @@ enum OwnershipType {
 enum TruckStatus {
   AVAILABLE = 'available',
   MAINTENANCE = 'maintenance',
-  OUT_OF_SERVICE = 'out_of_service',
+  OUT_OF_SERVICE = 'out-of-service',
 }
 
 /**
@@ -54,7 +54,7 @@ enum TruckStatus {
  */
 enum DistanceUnit {
   MILES = 'miles',
-  KILOMETERS = 'kilometers',
+  KM = 'km',
 }
 
 export class CreateTruckDto {

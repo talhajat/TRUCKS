@@ -9,16 +9,8 @@
 export { CreateTruckDto } from './create-truck.dto';
 
 // Response DTOs
-export {
-  TruckListItemDto,
-  GetAllTrucksResponseDto,
-  CreateTruckResponseDto,
-  ErrorResponseDto,
-  SuccessResponseDto
-} from './truck-response.dto';
-
+export { CreateTruckResponseDto } from './create-truck-response.dto';
 export { TruckTableResponseDto } from './truck-table-response.dto';
-
 export { TruckDetailsResponseDto } from './truck-details-response.dto';
 
 // Domain DTOs

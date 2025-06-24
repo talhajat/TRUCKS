@@ -16,6 +16,13 @@ import { Truck, TruckProps } from '../../domain/entities/truck.entity';
 import { TruckDocument, TruckDocumentProps } from '../../domain/entities/truck-document.entity';
 import { VehicleId } from '../../domain/value-objects/vehicle-id.vo';
 import { VIN } from '../../domain/value-objects/vin.vo';
+import {
+  TruckStatus,
+  TransmissionType,
+  OwnershipType,
+  OdometerUnit,
+  Jurisdiction
+} from '../../domain/enums';
 
 @Injectable()
 export class PrismaTruckRepository implements ITruckRepository {
@@ -482,64 +489,80 @@ export class PrismaTruckRepository implements ITruckRepository {
   /**
    * Mapping methods to convert between domain enums and database enums
    */
-  private mapTruckStatus(status: string): any {
-    return status; // Already lowercase in domain
+  private mapTruckStatus(status: string | TruckStatus): any {
+    // If it's already a database value, return it
+    if (status === 'available' || status === 'maintenance' || status === 'out_of_service') {
+      return status;
+    }
+    // Map domain enum values to database values
+    const mapping: Record<string, string> = {
+      [TruckStatus.AVAILABLE]: 'available',
+      [TruckStatus.MAINTENANCE]: 'maintenance',
+      [TruckStatus.OUT_OF_SERVICE]: 'out_of_service', // Database uses underscore, domain uses hyphen
+    };
+    return mapping[status] || 'available';
   }
 
-  private mapFromTruckStatus(status: any): string {
-    return status;
+  private mapFromTruckStatus(status: any): TruckStatus {
+    // Map database values to domain enum
+    const mapping: Record<string, TruckStatus> = {
+      'available': TruckStatus.AVAILABLE,
+      'maintenance': TruckStatus.MAINTENANCE,
+      'out_of_service': TruckStatus.OUT_OF_SERVICE, // Database uses underscore, domain uses hyphen
+    };
+    return mapping[status] || TruckStatus.AVAILABLE;
   }
 
-  private mapTransmissionType(type: string): any {
+  private mapTransmissionType(type: string | TransmissionType): any {
     const mapping: Record<string, any> = {
-      'manual': 'MANUAL',
-      'automatic': 'AUTOMATIC',
-      'automated_manual': 'AUTOMATED_MANUAL',
+      [TransmissionType.MANUAL]: 'MANUAL',
+      [TransmissionType.AUTOMATIC]: 'AUTOMATIC',
+      [TransmissionType.AUTOMATED_MANUAL]: 'AUTOMATED_MANUAL',
     };
     return mapping[type] || 'MANUAL';
   }
 
-  private mapFromTransmissionType(type: any): string {
-    const mapping: Record<any, string> = {
-      'MANUAL': 'manual',
-      'AUTOMATIC': 'automatic',
-      'AUTOMATED_MANUAL': 'automated_manual',
+  private mapFromTransmissionType(type: any): TransmissionType {
+    const mapping: Record<any, TransmissionType> = {
+      'MANUAL': TransmissionType.MANUAL,
+      'AUTOMATIC': TransmissionType.AUTOMATIC,
+      'AUTOMATED_MANUAL': TransmissionType.AUTOMATED_MANUAL,
     };
-    return mapping[type] || 'manual';
+    return mapping[type] || TransmissionType.MANUAL;
   }
 
-  private mapOwnershipType(type: string): any {
+  private mapOwnershipType(type: string | OwnershipType): any {
     const mapping: Record<string, any> = {
-      'owned': 'OWNED',
-      'leased': 'LEASED',
-      'rented': 'RENTED',
+      [OwnershipType.OWNED]: 'OWNED',
+      [OwnershipType.LEASED]: 'LEASED',
+      [OwnershipType.RENTED]: 'RENTED',
     };
     return mapping[type] || 'OWNED';
   }
 
-  private mapFromOwnershipType(type: any): string {
-    const mapping: Record<any, string> = {
-      'OWNED': 'owned',
-      'LEASED': 'leased',
-      'RENTED': 'rented',
+  private mapFromOwnershipType(type: any): OwnershipType {
+    const mapping: Record<any, OwnershipType> = {
+      'OWNED': OwnershipType.OWNED,
+      'LEASED': OwnershipType.LEASED,
+      'RENTED': OwnershipType.RENTED,
     };
-    return mapping[type] || 'owned';
+    return mapping[type] || OwnershipType.OWNED;
   }
 
-  private mapDistanceUnit(unit: string): any {
+  private mapDistanceUnit(unit: string | OdometerUnit): any {
     const mapping: Record<string, any> = {
-      'miles': 'MILES',
-      'kilometers': 'KILOMETERS',
+      [OdometerUnit.MILES]: 'MILES',
+      [OdometerUnit.KM]: 'KILOMETERS',  // Map 'km' to database 'KILOMETERS'
     };
     return mapping[unit] || 'MILES';
   }
 
-  private mapFromDistanceUnit(unit: any): string {
-    const mapping: Record<any, string> = {
-      'MILES': 'miles',
-      'KILOMETERS': 'kilometers',
+  private mapFromDistanceUnit(unit: any): OdometerUnit {
+    const mapping: Record<any, OdometerUnit> = {
+      'MILES': OdometerUnit.MILES,
+      'KILOMETERS': OdometerUnit.KM,  // Map database 'KILOMETERS' to 'km'
     };
-    return mapping[unit] || 'miles';
+    return mapping[unit] || OdometerUnit.MILES;
   }
 
   private mapDocumentType(type: string): any {

@@ -20,6 +20,13 @@
 import { VehicleId } from '../value-objects/vehicle-id.vo';
 import { VIN } from '../value-objects/vin.vo';
 import { TruckDocument } from './truck-document.entity';
+import {
+  TruckStatus,
+  TransmissionType,
+  OwnershipType,
+  OdometerUnit,
+  Jurisdiction
+} from '../enums';
 
 export interface TruckProps {
   // Identification & Basic Details (Required for table display)
@@ -34,11 +41,11 @@ export interface TruckProps {
   engineMake?: string;
   engineModel?: string;
   horsepower?: number;
-  transmissionType: string;    // manual, automatic, automated_manual
+  transmissionType: TransmissionType;
   numGears?: number;
 
   // Ownership & Financials (from form)
-  ownershipType: string;       // owned, leased, rented
+  ownershipType: OwnershipType;
   purchaseDate?: Date;
   leaseEndDate?: Date;
   purchasePrice?: number;
@@ -49,19 +56,19 @@ export interface TruckProps {
   registrationExp?: Date;
   insurancePolicy?: string;
   insuranceExp?: Date;
-  jurisdiction: string;        // Default: IFTA
+  jurisdiction: Jurisdiction;
   gvwr?: number;              // Gross Vehicle Weight Rating (lbs)
   gcwr?: number;              // Gross Combined Weight Rating (lbs)
   dotNumber?: string;
 
   // Status & Location (Required for table display)
-  status: string;             // → STATUS column (available, maintenance, out_of_service)
+  status: TruckStatus;        // → STATUS column
   currentLocation?: string;   // → CURRENT LOCATION column
   assignedYardId?: string;    // Simple ID reference (no foreign key)
 
   // Operational Data (Required for table display)
   odometer?: number;          // → ODOMETER/ENG HRS column (part 1)
-  odometerUnit: string;       // miles, kilometers
+  odometerUnit: OdometerUnit;
   engineHours?: number;       // Always displayed as "NA" in table
 
   // Simple Trailer Reference (Required for table display)
@@ -90,11 +97,11 @@ export class Truck {
     // Apply business defaults
     const truckProps: TruckProps = {
       ...props,
-      status: props.status || 'available',
-      transmissionType: props.transmissionType || 'manual',
-      ownershipType: props.ownershipType || 'owned',
-      odometerUnit: props.odometerUnit || 'miles',
-      jurisdiction: props.jurisdiction || 'IFTA',
+      status: props.status || TruckStatus.AVAILABLE,
+      transmissionType: props.transmissionType || TransmissionType.MANUAL,
+      ownershipType: props.ownershipType || OwnershipType.OWNED,
+      odometerUnit: props.odometerUnit || OdometerUnit.MILES,
+      jurisdiction: props.jurisdiction || Jurisdiction.IFTA,
       createdAt: props.createdAt || new Date(),
       updatedAt: props.updatedAt || new Date(),
       lastUpdated: props.lastUpdated || new Date(),
@@ -143,24 +150,7 @@ export class Truck {
     }
 
     // VIN validation is handled by the VIN value object
-
-    // Status validation
-    const validStatuses = ['available', 'maintenance', 'out_of_service'];
-    if (!validStatuses.includes(this._props.status)) {
-      throw new Error(`Invalid status. Must be one of: ${validStatuses.join(', ')}`);
-    }
-
-    // Transmission type validation
-    const validTransmissions = ['manual', 'automatic', 'automated_manual'];
-    if (!validTransmissions.includes(this._props.transmissionType)) {
-      throw new Error(`Invalid transmission type. Must be one of: ${validTransmissions.join(', ')}`);
-    }
-
-    // Ownership type validation
-    const validOwnership = ['owned', 'leased', 'rented'];
-    if (!validOwnership.includes(this._props.ownershipType)) {
-      throw new Error(`Invalid ownership type. Must be one of: ${validOwnership.join(', ')}`);
-    }
+    // Enum validation is handled by TypeScript at compile time
   }
 
   /**
@@ -171,7 +161,8 @@ export class Truck {
    * Attach trailer to truck (for default assigned trailer)
    */
   public attachTrailer(trailerId: string): void {
-    if (this._props.status === 'maintenance' || this._props.status === 'out_of_service') {
+    if (this._props.status === TruckStatus.MAINTENANCE ||
+        this._props.status === TruckStatus.OUT_OF_SERVICE) {
       throw new Error('Cannot attach trailer to truck in maintenance or out of service');
     }
     
@@ -218,7 +209,7 @@ export class Truck {
     return this._props.color;
   }
 
-  get status(): string {
+  get status(): TruckStatus {
     return this._props.status;
   }
 

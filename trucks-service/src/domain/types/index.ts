@@ -5,6 +5,8 @@
  * domain concepts. They should not depend on any other layer.
  */
 
+import { TruckStatus, TransmissionType, OwnershipType, OdometerUnit, Jurisdiction } from '../enums';
+
 /**
  * Data required to create a truck in the domain
  */
@@ -22,9 +24,9 @@ export interface TruckCreationData {
   engineMake?: string;
   engineModel?: string;
   horsepower?: number;
-  transmissionType?: string;
+  transmissionType?: TransmissionType;
   numGears?: number;
-  ownershipType?: string;
+  ownershipType?: OwnershipType;
   purchaseDate?: Date;
   leaseEndDate?: Date;
   purchasePrice?: number;
@@ -33,15 +35,15 @@ export interface TruckCreationData {
   registrationExp?: Date;
   insurancePolicy?: string;
   insuranceExp?: Date;
-  jurisdiction?: string;
+  jurisdiction?: Jurisdiction;
   gvwr?: number;
   gcwr?: number;
   dotNumber?: string;
-  status?: string;
+  status?: TruckStatus;
   currentLocation?: string;
   assignedYardId?: string;
   odometer?: number;
-  odometerUnit?: string;
+  odometerUnit?: OdometerUnit;
   engineHours?: number;
   attachedTrailerId?: string;
 }

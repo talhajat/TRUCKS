@@ -37,10 +37,10 @@ export class TruckTableResponseDto {
   })
   type: 'truck' = 'truck';
 
-  @ApiProperty({ 
+  @ApiProperty({
     description: 'Truck status for STATUS column',
     example: 'available',
-    enum: ['available', 'maintenance', 'out_of_service']
+    enum: ['available', 'maintenance', 'out-of-service']  // Frontend expects hyphenated format
   })
   status: string;
 

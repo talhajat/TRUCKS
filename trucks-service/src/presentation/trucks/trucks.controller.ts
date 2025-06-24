@@ -25,12 +25,12 @@ import {
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiResponse, ApiConsumes, ApiParam } from '@nestjs/swagger';
 import { CreateTruckUseCase, GetAllTrucksUseCase, GetTruckByIdUseCase } from '../../application/use-cases';
+import { CreateTruckOutput } from '../../application/use-cases/create-truck.use-case';
 import {
   CreateTruckDto,
   CreateTruckResponseDto,
   TruckTableResponseDto,
-  TruckDetailsResponseDto,
-  ErrorResponseDto
+  TruckDetailsResponseDto
 } from '../../application/dtos';
 
 /**
@@ -63,8 +63,7 @@ export class TrucksController {
   })
   @ApiResponse({
     status: 500,
-    description: 'Internal server error',
-    type: ErrorResponseDto
+    description: 'Internal server error'
   })
   async getAllTrucks(): Promise<{ data: TruckTableResponseDto[] }> {
     try {
@@ -92,25 +91,23 @@ export class TrucksController {
     description: 'Creates a new truck with optional document uploads'
   })
   @ApiConsumes('multipart/form-data', 'application/json')
-  @ApiResponse({ 
-    status: 201, 
+  @ApiResponse({
+    status: 201,
     description: 'Truck created successfully',
     type: CreateTruckResponseDto
   })
-  @ApiResponse({ 
-    status: 400, 
-    description: 'Validation error',
-    type: ErrorResponseDto
+  @ApiResponse({
+    status: 400,
+    description: 'Validation error'
   })
-  @ApiResponse({ 
-    status: 500, 
-    description: 'Internal server error',
-    type: ErrorResponseDto
+  @ApiResponse({
+    status: 500,
+    description: 'Internal server error'
   })
   async createTruck(
     @Body() createTruckDto: CreateTruckDto,
     @UploadedFiles() files?: Express.Multer.File[]
-  ): Promise<CreateTruckResponseDto> {
+  ): Promise<CreateTruckOutput> {
     try {
       // Log the incoming request for debugging
       console.log('📝 Creating new truck:', {
@@ -232,13 +229,11 @@ export class TrucksController {
   })
   @ApiResponse({
     status: 404,
-    description: 'Truck not found',
-    type: ErrorResponseDto
+    description: 'Truck not found'
   })
   @ApiResponse({
     status: 500,
-    description: 'Internal server error',
-    type: ErrorResponseDto
+    description: 'Internal server error'
   })
   async getTruckById(@Param('id') id: string): Promise<TruckDetailsResponseDto> {
     try {
