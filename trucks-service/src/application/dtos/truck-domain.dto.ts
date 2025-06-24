@@ -18,7 +18,6 @@ export interface CreateTruckData {
   year: number;
 
   // Optional fields
-  name?: string;
   color?: string;
   engineMake?: string;
   engineModel?: string;

@@ -25,11 +25,11 @@ export class TruckTableResponseDto {
   })
   id: string;
 
-  @ApiProperty({ 
+  @ApiProperty({
     description: 'Vehicle ID/Unit Number for ID/UNIT column',
-    example: 'T104' 
+    example: 'T104'
   })
-  name: string; // Maps to vehicleId for frontend compatibility
+  unitNumber: string; // Maps to vehicleId - clearer than using 'name'
 
   @ApiProperty({ 
     description: 'Truck type (always "truck")',
@@ -113,14 +113,14 @@ export class TruckTableResponseDto {
     
     // Core fields
     dto.id = truck.id;
-    dto.name = truck.vehicleId; // Frontend expects 'name' but we use vehicleId
+    dto.unitNumber = truck.vehicleId?.value || truck.vehicleId || truck.vehicleIdValue; // Extract value from value object
     dto.type = 'truck';
     dto.status = truck.status;
     dto.currentLocation = truck.currentLocation || truck.assignedYardId || null;
     
     // Vehicle details
     dto.year = truck.year;
-    dto.vin = truck.vin;
+    dto.vin = truck.vin?.value || truck.vin || truck.vinValue; // Extract value from value object
     dto.make = truck.make;
     dto.model = truck.model;
     

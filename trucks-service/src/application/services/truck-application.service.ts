@@ -52,7 +52,6 @@ export class TruckApplicationService {
     const truckProps: TruckProps = {
       vehicleId,
       vin,
-      name: truckData.name || `Unit ${vehicleId.value}`,
       make: truckData.make,
       model: truckData.model,
       year: truckData.year,

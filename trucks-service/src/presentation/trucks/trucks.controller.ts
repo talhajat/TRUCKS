@@ -123,7 +123,6 @@ export class TrucksController {
         make: createTruckDto.make,
         model: createTruckDto.model,
         year: createTruckDto.year,
-        name: createTruckDto.name,
         color: createTruckDto.color,
         engineMake: createTruckDto.engineMake,
         engineModel: createTruckDto.engineModel,

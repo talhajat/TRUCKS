@@ -38,23 +38,8 @@ export class GetAllTrucksUseCase {
       // Get all trucks from the repository
       const trucks = await this.truckRepository.findAll();
 
-      // Convert domain entities to table display format
-      const truckTableData = trucks.map(truck => ({
-        id: truck.id,
-        name: truck.vehicleIdValue, // Frontend expects 'name' but we use vehicleId
-        type: 'truck' as const,
-        status: truck.status,
-        currentLocation: truck.currentLocation || null,
-        year: truck.year,
-        vin: truck.vinValue,
-        make: truck.make,
-        model: truck.model,
-        driverId: null, // Always null - displays as "N/A" in table
-        odometer: truck.odometer || null,
-        engineHours: null, // Always null - displays as "NA" in table
-        attachedTrailerId: truck.attachedTrailerId || null,
-        lastUpdated: truck.lastUpdated.toISOString(),
-      }));
+      // Convert domain entities to table display format using the DTO
+      const truckTableData = TruckTableResponseDto.fromDomainArray(trucks);
 
       return {
         data: truckTableData,

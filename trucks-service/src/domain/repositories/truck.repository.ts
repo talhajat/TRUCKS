@@ -89,18 +89,6 @@ export interface ITruckRepository {
   existsByVin(vin: VIN): Promise<boolean>;
 
   /**
-   * Get trucks that need maintenance soon
-   * Like asking "which trucks are due for service based on mileage or time?"
-   */
-  findMaintenanceDue(odometerThreshold?: number, daysThreshold?: number): Promise<Truck[]>;
-
-  /**
-   * Get trucks with expiring documents
-   * Like asking "which trucks have registration or insurance expiring soon?"
-   */
-  findWithExpiringDocuments(daysAhead: number): Promise<Truck[]>;
-
-  /**
    * Search trucks by multiple criteria
    * Like asking "find trucks that match these specific conditions"
    */

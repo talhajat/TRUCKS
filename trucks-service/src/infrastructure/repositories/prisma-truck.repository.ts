@@ -34,7 +34,6 @@ export class PrismaTruckRepository implements ITruckRepository {
           id: truck.id,
           // Basic truck information
           vehicleId: props.vehicleId.value,
-          name: props.name,
           vin: props.vin.value,
           make: props.make,
           model: props.model,
@@ -115,7 +114,6 @@ export class PrismaTruckRepository implements ITruckRepository {
         data: {
           // Basic truck information
           vehicleId: props.vehicleId.value,
-          name: props.name,
           vin: props.vin.value,
           make: props.make,
           model: props.model,
@@ -360,66 +358,6 @@ export class PrismaTruckRepository implements ITruckRepository {
   }
 
   /**
-   * Get trucks that need maintenance soon
-   * Like asking "which trucks are due for service based on mileage or time?"
-   */
-  async findMaintenanceDue(odometerThreshold: number = 300000, daysThreshold: number = 30): Promise<Truck[]> {
-    try {
-      const thresholdDate = new Date();
-      thresholdDate.setDate(thresholdDate.getDate() - (daysThreshold * 30)); // Approximate months to days
-
-      const trucksData = await this.prisma.truck.findMany({
-        where: {
-          OR: [
-            { odometer: { gte: odometerThreshold } },
-            { lastUpdated: { lte: thresholdDate } },
-          ],
-        },
-        include: {
-          documents: true,
-        },
-        orderBy: {
-          odometer: 'desc',
-        },
-      });
-
-      return trucksData.map(truckData => this.mapToDomainEntity(truckData));
-    } catch (error) {
-      throw new Error(`Failed to find trucks needing maintenance: ${error.message}`);
-    }
-  }
-
-  /**
-   * Get trucks with expiring documents
-   * Like asking "which trucks have registration or insurance expiring soon?"
-   */
-  async findWithExpiringDocuments(daysAhead: number): Promise<Truck[]> {
-    try {
-      const expirationDate = new Date();
-      expirationDate.setDate(expirationDate.getDate() + daysAhead);
-
-      const trucksData = await this.prisma.truck.findMany({
-        where: {
-          OR: [
-            { registrationExp: { lte: expirationDate } },
-            { insuranceExp: { lte: expirationDate } },
-          ],
-        },
-        include: {
-          documents: true,
-        },
-        orderBy: {
-          registrationExp: 'asc',
-        },
-      });
-
-      return trucksData.map(truckData => this.mapToDomainEntity(truckData));
-    } catch (error) {
-      throw new Error(`Failed to find trucks with expiring documents: ${error.message}`);
-    }
-  }
-
-  /**
    * Search trucks by multiple criteria
    * Like asking "find trucks that match these specific conditions"
    */
@@ -502,7 +440,6 @@ export class PrismaTruckRepository implements ITruckRepository {
     // Create truck properties
     const truckProps: TruckProps = {
       vehicleId: VehicleId.fromString(truckData.vehicleId),
-      name: truckData.name,
       vin: VIN.fromString(truckData.vin),
       make: truckData.make,
       model: truckData.model,

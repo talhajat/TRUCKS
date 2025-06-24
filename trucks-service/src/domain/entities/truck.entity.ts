@@ -24,7 +24,6 @@ import { TruckDocument } from './truck-document.entity';
 export interface TruckProps {
   // Identification & Basic Details (Required for table display)
   vehicleId: VehicleId;        // → ID/UNIT column
-  name?: string;               // User-friendly name
   vin: VIN;                    // → VIN column
   make: string;                // → MAKE & MODEL column (part 1)
   model: string;               // → MAKE & MODEL column (part 2)
@@ -355,10 +354,6 @@ export class Truck {
 
   get vehicleIdValue(): string {
     return this._props.vehicleId.value;
-  }
-
-  get name(): string | undefined {
-    return this._props.name;
   }
 
   get vin(): VIN {

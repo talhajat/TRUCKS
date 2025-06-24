@@ -228,7 +228,7 @@
                   "    if (jsonData.data.length > 0) {",
                   "        const truck = jsonData.data[0];",
                   "        pm.expect(truck).to.have.property('id');",
-                  "        pm.expect(truck).to.have.property('name'); // vehicleId",
+                  "        pm.expect(truck).to.have.property('unitNumber'); // vehicleId",
                   "        pm.expect(truck).to.have.property('type');",
                   "        pm.expect(truck).to.have.property('status');",
                   "        pm.expect(truck).to.have.property('currentLocation');",

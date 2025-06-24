@@ -1,10 +1,24 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// ============================================================================
+// TRUCKS SERVICE - PRISMA SCHEMA
+// ============================================================================
+// This schema defines the database structure for a truck fleet management system.
+// It supports two core features:
+// 1. Truck Creation - Form-based data entry for new trucks
+// 2. Truck Display - Table view showing truck fleet status and details
+//
+// Database: PostgreSQL
+// ORM: Prisma with TypeScript client generation
+// ============================================================================
 
+// Prisma Client Generator Configuration
+// Generates TypeScript client for database operations
 generator client {
   provider = "prisma-client-js"
 }
 
+// Database Connection Configuration
+// Uses PostgreSQL as the primary database
+// Connection string loaded from environment variable for security
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -22,115 +36,184 @@ model Truck {
 
   // Identification & Basic Details (Required for table display)
   vehicleId String  @unique // Unit Number (e.g., T101) - maps to ID/UNIT column
-  name      String? // User-friendly name
   vin       String  @unique // maps to VIN column
   make      String  // maps to MAKE & MODEL column (part 1)
   model     String  // maps to MAKE & MODEL column (part 2)
   year      Int     // maps to YEAR column
   color     String?
 
-  // Engine & Powertrain (from form)
-  engineMake       String?
-  engineModel      String?
-  horsepower       Int?
-  transmissionType TransmissionType @default(MANUAL)
-  numGears         Int?
+  // ========================================
+  // ENGINE & POWERTRAIN SPECIFICATIONS
+  // Technical details captured during truck registration
+  // ========================================
+  engineMake       String?          // Engine manufacturer (e.g., Cummins, Caterpillar)
+  engineModel      String?          // Specific engine model (e.g., X15, C15)
+  horsepower       Int?             // Engine power output in HP - affects performance ratings
+  transmissionType TransmissionType @default(MANUAL) // Transmission type - affects driver requirements
+  numGears         Int?             // Number of transmission gears - operational detail
 
-  // Ownership & Financials (from form)
-  ownershipType OwnershipType @default(OWNED)
-  purchaseDate  DateTime?
-  leaseEndDate  DateTime?
-  purchasePrice Decimal?
+  // ========================================
+  // OWNERSHIP & FINANCIAL INFORMATION
+  // Business data for asset management and accounting
+  // ========================================
+  ownershipType OwnershipType @default(OWNED) // How the truck is acquired - affects depreciation
+  purchaseDate  DateTime?                     // When truck was acquired - for asset tracking
+  leaseEndDate  DateTime?                     // Lease expiration - critical for lease management
+  purchasePrice Decimal?                      // Acquisition cost - for financial reporting and depreciation
 
-  // Registration & Compliance (from form)
-  licensePlate     String?
-  issuingState     String?
-  registrationExp  DateTime?
-  insurancePolicy  String?
-  insuranceExp     DateTime?
-  jurisdiction     String @default("IFTA")
-  gvwr             Int? // Gross Vehicle Weight Rating (lbs)
-  gcwr             Int? // Gross Combined Weight Rating (lbs)
-  dotNumber        String?
+  // ========================================
+  // REGISTRATION & COMPLIANCE
+  // Legal requirements for commercial vehicle operation
+  // ========================================
+  licensePlate     String?  // State-issued license plate number
+  issuingState     String?  // State that issued the registration
+  registrationExp  DateTime? // Registration expiration - compliance tracking
+  insurancePolicy  String?  // Insurance policy number - required for operation
+  insuranceExp     DateTime? // Insurance expiration - critical compliance date
+  jurisdiction     String @default("IFTA") // Tax jurisdiction (International Fuel Tax Agreement)
+  gvwr             Int?     // Gross Vehicle Weight Rating (lbs) - determines license class requirements
+  gcwr             Int?     // Gross Combined Weight Rating (lbs) - affects route restrictions
+  dotNumber        String?  // Department of Transportation number - federal compliance requirement
 
-  // Status & Location (Required for table display)
-  status          TruckStatus @default(available) // maps to STATUS column
-  currentLocation String? // maps to CURRENT LOCATION column
-  assignedYardId  String? // Simple ID reference (no foreign key)
+  // ========================================
+  // STATUS & LOCATION TRACKING
+  // Real-time operational data for fleet management
+  // ========================================
+  status          TruckStatus @default(available) // Current operational status - drives dispatch decisions
+  currentLocation String?                         // Last known location - for logistics and routing
+  assignedYardId  String?                         // Home yard assignment - simple reference without FK constraint
 
-  // Operational Data (Required for table display)
-  odometer     Int? // maps to ODOMETER/ENG HRS column (part 1)
-  odometerUnit DistanceUnit @default(MILES)
-  engineHours  Int? // Always displayed as "NA" in table
+  // ========================================
+  // OPERATIONAL METRICS
+  // Basic usage tracking for display purposes only
+  // ========================================
+  odometer     Int?         // Current odometer reading - displayed in table as "X mi/NA"
+  odometerUnit DistanceUnit @default(MILES) // Unit of measurement (MILES or KILOMETERS)
+  engineHours  Int?         // Not used - always displays as "NA" in the table
 
-  // Simple Trailer Reference (Required for table display)
-  // Store ONLY trailer ID - no complex relationship
-  // Maps to ATTACHED TRAILER column
-  attachedTrailerId String? // Show "None" if null, trailer ID if assigned
+  // ========================================
+  // TRAILER ASSIGNMENT
+  // Simple reference to attached trailer without complex relationships
+  // ========================================
+  attachedTrailerId String? // ID of currently attached trailer - displays "None" if null
 
-  // Documents (keep for form uploads)
-  documents TruckDocument[]
+  // ========================================
+  // DOCUMENT MANAGEMENT
+  // Related documents for compliance and record keeping
+  // ========================================
+  documents TruckDocument[] // One-to-many relationship with truck documents
 
-  // Audit
-  lastUpdated DateTime @default(now())
+  // ========================================
+  // AUDIT TRAIL
+  // Additional timestamp for business logic tracking
+  // ========================================
+  lastUpdated DateTime @default(now()) // Business-level last update timestamp
 
   @@map("trucks")
 }
 
+// ============================================================================
+// TRUCK DOCUMENT MODEL - File Management
+// ============================================================================
+// Represents documents associated with trucks (titles, registrations, etc.).
+// Supports file upload functionality in the truck creation form.
+// Uses cascade delete to maintain referential integrity.
+// Maps to the truck_documents table in PostgreSQL.
+// ============================================================================
 model TruckDocument {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  // ========================================
+  // SYSTEM FIELDS
+  // ========================================
+  id        String   @id @default(cuid()) // Primary key for document record
+  createdAt DateTime @default(now())      // Document upload timestamp
+  updatedAt DateTime @updatedAt           // Last modification timestamp
 
-  // Document Info
-  documentType DocumentType
-  fileName     String
-  filePath     String
-  fileSize     Int?
-  mimeType     String?
+  // ========================================
+  // DOCUMENT PROPERTIES
+  // File metadata and classification
+  // ========================================
+  documentType DocumentType // Type of document (title, registration, etc.) - for organization
+  fileName     String       // Original filename as uploaded by user
+  filePath     String       // Storage path for file retrieval
+  fileSize     Int?         // File size in bytes - for storage management
+  mimeType     String?      // MIME type for proper file handling
 
-  // Metadata
-  description String?
-  uploadedBy  String?
+  // ========================================
+  // DOCUMENT METADATA
+  // Additional information for document management
+  // ========================================
+  description String? // Optional description provided by user
+  uploadedBy  String? // User who uploaded the document - for audit trail
 
-  // Relationships
-  truckId String
-  truck   Truck  @relation(fields: [truckId], references: [id], onDelete: Cascade)
+  // ========================================
+  // RELATIONSHIPS
+  // Foreign key relationship with Truck model
+  // ========================================
+  truckId String // Foreign key to trucks table
+  truck   Truck  @relation(fields: [truckId], references: [id], onDelete: Cascade) // Cascade delete ensures cleanup
 
-  // Audit
-  lastUpdated DateTime @default(now())
+  // ========================================
+  // AUDIT TRAIL
+  // ========================================
+  lastUpdated DateTime @default(now()) // Business-level timestamp
 
-  @@map("truck_documents")
+  @@map("truck_documents") // Maps to truck_documents table in database
 }
 
-// ENUMS - Keep only truck-related enums
+// ============================================================================
+// ENUMERATION TYPES - Business Logic Constraints
+// ============================================================================
+// These enums define the allowed values for specific fields, ensuring data
+// consistency and providing clear business rules for the application.
+// ============================================================================
+
+// ========================================
+// TRUCK OPERATIONAL STATUS
+// Defines the current operational state of a truck
+// ========================================
 enum TruckStatus {
-  available
-  maintenance
-  out_of_service
+  available      // Ready for dispatch and assignment
+  maintenance    // Undergoing scheduled or unscheduled maintenance
+  out_of_service // Not operational due to damage, compliance issues, etc.
 }
 
+// ========================================
+// TRANSMISSION TYPES
+// Categorizes the transmission system for operational requirements
+// ========================================
 enum TransmissionType {
-  MANUAL
-  AUTOMATIC
-  AUTOMATED_MANUAL
+  MANUAL           // Manual transmission - requires CDL with manual restriction removal
+  AUTOMATIC        // Automatic transmission - standard CDL acceptable
+  AUTOMATED_MANUAL // AMT/Auto-shift - hybrid system, treated as automatic for licensing
 }
 
+// ========================================
+// OWNERSHIP MODELS
+// Defines how the truck is acquired and owned by the company
+// ========================================
 enum OwnershipType {
-  OWNED
-  LEASED
-  RENTED
+  OWNED  // Company owns the truck outright - full asset on books
+  LEASED // Long-term lease agreement - operating or capital lease
+  RENTED // Short-term rental - typically for temporary capacity
 }
 
+// ========================================
+// DISTANCE MEASUREMENT UNITS
+// Standardizes odometer readings across different regions
+// ========================================
 enum DistanceUnit {
-  MILES
-  KILOMETERS
+  MILES      // Imperial system - standard in US trucking
+  KILOMETERS // Metric system - for international operations
 }
 
+// ========================================
+// DOCUMENT CLASSIFICATION
+// Categorizes uploaded documents for organization and compliance tracking
+// ========================================
 enum DocumentType {
-  VEHICLE_TITLE
-  LEASE_AGREEMENT
-  REGISTRATION
-  INSURANCE_CERTIFICATE
-  INSPECTION_REPORT
+  VEHICLE_TITLE         // Legal ownership document
+  LEASE_AGREEMENT       // Lease contract for leased vehicles
+  REGISTRATION          // State vehicle registration
+  INSURANCE_CERTIFICATE // Proof of insurance coverage
+  INSPECTION_REPORT     // DOT inspection or safety inspection results
 }

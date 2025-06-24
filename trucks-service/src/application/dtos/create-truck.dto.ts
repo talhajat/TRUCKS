@@ -105,16 +105,7 @@ export class CreateTruckDto {
 
   // ===== OPTIONAL BASIC FIELDS =====
 
-  @ApiPropertyOptional({ 
-    description: 'User-friendly name for the truck', 
-    example: 'Unit 104' 
-  })
-  @IsOptional()
-  @IsString()
-  @Length(1, 100)
-  name?: string;
-
-  @ApiPropertyOptional({ 
+  @ApiPropertyOptional({
     description: 'Truck color', 
     example: 'White' 
   })

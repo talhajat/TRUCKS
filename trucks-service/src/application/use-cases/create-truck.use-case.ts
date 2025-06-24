@@ -26,7 +26,6 @@ export interface CreateTruckInput {
   year: number;
 
   // Optional fields
-  name?: string;
   color?: string;
   engineMake?: string;
   engineModel?: string;
@@ -114,7 +113,6 @@ export class CreateTruckUseCase {
       make: input.make,
       model: input.model,
       year: input.year,
-      name: input.name,
       color: input.color,
       engineMake: input.engineMake,
       engineModel: input.engineModel,
