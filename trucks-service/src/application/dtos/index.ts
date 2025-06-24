@@ -19,6 +19,8 @@ export {
 
 export { TruckTableResponseDto } from './truck-table-response.dto';
 
+export { TruckDetailsResponseDto } from './truck-details-response.dto';
+
 // Domain DTOs
 export {
   CreateTruckData,

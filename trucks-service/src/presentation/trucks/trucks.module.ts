@@ -10,7 +10,7 @@
 
 import { Module } from '@nestjs/common';
 import { TrucksController } from './trucks.controller';
-import { CreateTruckUseCase, GetAllTrucksUseCase } from '../../application/use-cases';
+import { CreateTruckUseCase, GetAllTrucksUseCase, GetTruckByIdUseCase } from '../../application/use-cases';
 import { TruckDomainService } from '../../domain/services/truck.service';
 import { TruckApplicationService } from '../../application/services/truck-application.service';
 import { PrismaTruckRepository } from '../../infrastructure/repositories/prisma-truck.repository';
@@ -34,6 +34,7 @@ export const TRUCK_REPOSITORY_TOKEN = 'ITruckRepository';
     // Use Cases (Application Layer)
     CreateTruckUseCase,
     GetAllTrucksUseCase,
+    GetTruckByIdUseCase,
     
     // Application Services (Application Layer)
     TruckApplicationService,
@@ -51,6 +52,7 @@ export const TRUCK_REPOSITORY_TOKEN = 'ITruckRepository';
     // Export use cases so other modules can use them if needed
     CreateTruckUseCase,
     GetAllTrucksUseCase,
+    GetTruckByIdUseCase,
   ],
 })
 export class TrucksModule {

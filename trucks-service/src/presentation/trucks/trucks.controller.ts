@@ -8,25 +8,28 @@
  * This is the entry point for all truck-related API endpoints.
  */
 
-import { 
-  Controller, 
-  Get, 
-  Post, 
-  Body, 
-  HttpCode, 
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  HttpCode,
   HttpStatus,
   UseInterceptors,
   UploadedFiles,
   BadRequestException,
-  InternalServerErrorException
+  InternalServerErrorException,
+  NotFoundException
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { ApiTags, ApiOperation, ApiResponse, ApiConsumes } from '@nestjs/swagger';
-import { CreateTruckUseCase, GetAllTrucksUseCase } from '../../application/use-cases';
+import { ApiTags, ApiOperation, ApiResponse, ApiConsumes, ApiParam } from '@nestjs/swagger';
+import { CreateTruckUseCase, GetAllTrucksUseCase, GetTruckByIdUseCase } from '../../application/use-cases';
 import {
   CreateTruckDto,
   CreateTruckResponseDto,
   TruckTableResponseDto,
+  TruckDetailsResponseDto,
   ErrorResponseDto
 } from '../../application/dtos';
 
@@ -40,6 +43,7 @@ export class TrucksController {
   constructor(
     private readonly createTruckUseCase: CreateTruckUseCase,
     private readonly getAllTrucksUseCase: GetAllTrucksUseCase,
+    private readonly getTruckByIdUseCase: GetTruckByIdUseCase,
   ) {}
 
   /**
@@ -73,6 +77,7 @@ export class TrucksController {
       });
     }
   }
+
 
   /**
    * POST /api/v1/trucks
@@ -190,12 +195,12 @@ export class TrucksController {
    * GET /api/v1/trucks/health
    */
   @Get('health')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Health check',
     description: 'Check if the trucks service is running properly'
   })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'Service is healthy'
   })
   getHealth(): { status: string; timestamp: string; service: string } {
@@ -204,5 +209,50 @@ export class TrucksController {
       timestamp: new Date().toISOString(),
       service: 'trucks-microservice'
     };
+  }
+
+  /**
+   * GET /api/v1/trucks/:id
+   * Retrieve a single truck's details for the Basic Information display
+   */
+  @Get(':id')
+  @ApiOperation({
+    summary: 'Get truck by ID',
+    description: 'Retrieves a single truck\'s details for the Basic Information section'
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'The truck ID',
+    example: 'truck_123456789'
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully retrieved truck details',
+    type: TruckDetailsResponseDto
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Truck not found',
+    type: ErrorResponseDto
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Internal server error',
+    type: ErrorResponseDto
+  })
+  async getTruckById(@Param('id') id: string): Promise<TruckDetailsResponseDto> {
+    try {
+      return await this.getTruckByIdUseCase.execute(id);
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      
+      throw new InternalServerErrorException({
+        statusCode: 500,
+        message: 'Failed to retrieve truck details. Please try again later.',
+        error: 'Internal Server Error'
+      });
+    }
   }
 }

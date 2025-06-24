@@ -266,6 +266,103 @@
           }
         }
       ]
+    },
+    {
+      "name": "Get Truck By ID",
+      "item": [
+        {
+          "name": "Get Truck By ID - Success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has Basic Information fields\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    // Check all 14 Basic Information fields",
+                  "    pm.expect(jsonData).to.have.property('vin');",
+                  "    pm.expect(jsonData).to.have.property('year');",
+                  "    pm.expect(jsonData).to.have.property('color');",
+                  "    pm.expect(jsonData).to.have.property('engineMake');",
+                  "    pm.expect(jsonData).to.have.property('engineModel');",
+                  "    pm.expect(jsonData).to.have.property('horsepower');",
+                  "    pm.expect(jsonData).to.have.property('transmissionType');",
+                  "    pm.expect(jsonData).to.have.property('numGears');",
+                  "    pm.expect(jsonData).to.have.property('ownershipType');",
+                  "    pm.expect(jsonData).to.have.property('purchaseDate');",
+                  "    pm.expect(jsonData).to.have.property('purchasePrice');",
+                  "    pm.expect(jsonData).to.have.property('gvwr');",
+                  "    pm.expect(jsonData).to.have.property('gcwr');",
+                  "    pm.expect(jsonData).to.have.property('jurisdiction');",
+                  "});",
+                  "",
+                  "pm.test(\"Basic Information fields have correct values\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.vin).to.eql(pm.environment.get(\"testVin\"));",
+                  "    pm.expect(jsonData.year).to.eql(2024);",
+                  "    pm.expect(jsonData.color).to.eql(\"White\");",
+                  "    pm.expect(jsonData.engineMake).to.eql(\"Cummins\");",
+                  "    pm.expect(jsonData.engineModel).to.eql(\"X15\");",
+                  "    pm.expect(jsonData.horsepower).to.eql(500);",
+                  "    pm.expect(jsonData.transmissionType).to.eql(\"automatic\");",
+                  "    pm.expect(jsonData.numGears).to.eql(10);",
+                  "    pm.expect(jsonData.ownershipType).to.eql(\"owned\");",
+                  "    pm.expect(jsonData.purchaseDate).to.eql(\"2024-01-15\");",
+                  "    pm.expect(jsonData.purchasePrice).to.eql(150000);",
+                  "    pm.expect(jsonData.gvwr).to.eql(80000);",
+                  "    pm.expect(jsonData.gcwr).to.eql(80000);",
+                  "    pm.expect(jsonData.jurisdiction).to.eql(\"IFTA\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/trucks/{{createdTruckId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "trucks", "{{createdTruckId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Truck By ID - Not Found",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 404\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test(\"Error message indicates truck not found\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.message).to.include(\"not found\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/trucks/non_existent_truck_id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "trucks", "non_existent_truck_id"]
+            }
+          }
+        }
+      ]
     }
   ],
   "event": [

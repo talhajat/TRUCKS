@@ -7,3 +7,4 @@
 
 export { CreateTruckUseCase } from './create-truck.use-case';
 export { GetAllTrucksUseCase } from './get-all-trucks.use-case';
+export { GetTruckByIdUseCase } from './get-truck-by-id.use-case';
