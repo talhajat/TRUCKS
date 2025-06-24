@@ -9,15 +9,9 @@
  * the creation process.
  */
 
-import { Injectable, Inject } from '@nestjs/common';
-import { TruckDomainService } from '../../domain/services/truck.service';
+import { Injectable } from '@nestjs/common';
+import { TruckApplicationService } from '../services/truck-application.service';
 import { CreateTruckData } from '../dtos/truck-domain.dto';
-import { ITruckRepository } from '../../domain/repositories/truck.repository';
-import { VehicleId } from '../../domain/value-objects/vehicle-id.vo';
-import { VIN } from '../../domain/value-objects/vin.vo';
-
-// Token for dependency injection
-export const TRUCK_REPOSITORY_TOKEN = 'ITruckRepository';
 
 /**
  * Input data for creating a truck
@@ -77,7 +71,7 @@ export interface CreateTruckOutput {
 @Injectable()
 export class CreateTruckUseCase {
   constructor(
-    private readonly truckDomainService: TruckDomainService
+    private readonly truckApplicationService: TruckApplicationService
   ) {}
 
   /**
@@ -89,8 +83,8 @@ export class CreateTruckUseCase {
       // Convert frontend input to domain data
       const createTruckData = this.mapInputToDomainData(input);
 
-      // Use domain service to create the truck
-      const truck = await this.truckDomainService.createTruck(createTruckData);
+      // Use application service to create the truck
+      const truck = await this.truckApplicationService.createTruck(createTruckData);
 
       // Return success response
       return {

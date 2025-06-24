@@ -69,13 +69,12 @@ export class CreateTruckDto {
   @Matches(/^[A-Z]\d{3,4}$/, { message: 'Vehicle ID must follow pattern: Letter followed by 3-4 digits (e.g., T101)' })
   vehicleId: string;
 
-  @ApiProperty({ 
-    description: 'Vehicle Identification Number (17 characters)', 
-    example: 'VINTRUCK123XYZ456' 
+  @ApiProperty({
+    description: 'Vehicle Identification Number',
+    example: 'VINTRUCK123XYZ456'
   })
   @IsString()
-  @Length(17, 17, { message: 'VIN must be exactly 17 characters' })
-  @Matches(/^[A-HJ-NPR-Z0-9]{17}$/, { message: 'VIN contains invalid characters' })
+  @Length(1, 255, { message: 'VIN must be between 1 and 255 characters' })
   vin: string;
 
   @ApiProperty({ 

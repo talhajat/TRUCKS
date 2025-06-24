@@ -20,3 +20,6 @@ export * from './repositories';
 
 // Domain Services
 export * from './services';
+
+// Domain Types
+export * from './types';

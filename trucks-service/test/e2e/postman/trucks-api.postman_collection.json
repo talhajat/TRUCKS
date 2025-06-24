@@ -1,0 +1,294 @@
+{
+  "info": {
+    "_postman_id": "trucks-service-e2e",
+    "name": "Trucks Service E2E Tests",
+    "description": "End-to-end tests for the Trucks microservice API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "item": [
+        {
+          "name": "Check Service Health",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has correct structure\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('status');",
+                  "    pm.expect(jsonData).to.have.property('timestamp');",
+                  "    pm.expect(jsonData).to.have.property('service');",
+                  "});",
+                  "",
+                  "pm.test(\"Service is healthy\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.status).to.eql('healthy');",
+                  "    pm.expect(jsonData.service).to.eql('trucks-microservice');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/trucks/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "trucks", "health"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Create Truck",
+      "item": [
+        {
+          "name": "Create New Truck - Success",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Generate unique IDs for testing",
+                  "const randomNum = Math.floor(Math.random() * 9000) + 100; // Generate 3-4 digit number",
+                  "pm.environment.set(\"testVehicleId\", `T${randomNum}`);",
+                  "pm.environment.set(\"testVin\", `VIN${Date.now()}TEST`);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has truck data\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('id');",
+                  "    pm.expect(jsonData).to.have.property('vehicleId');",
+                  "    pm.expect(jsonData).to.have.property('vin');",
+                  "    pm.expect(jsonData).to.have.property('make');",
+                  "    pm.expect(jsonData).to.have.property('model');",
+                  "    pm.expect(jsonData).to.have.property('year');",
+                  "    pm.expect(jsonData).to.have.property('status');",
+                  "    pm.expect(jsonData).to.have.property('message');",
+                  "});",
+                  "",
+                  "pm.test(\"Truck created with correct data\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.vehicleId).to.eql(pm.environment.get(\"testVehicleId\"));",
+                  "    pm.expect(jsonData.vin).to.eql(pm.environment.get(\"testVin\"));",
+                  "    pm.expect(jsonData.make).to.eql(\"Freightliner\");",
+                  "    pm.expect(jsonData.model).to.eql(\"Cascadia\");",
+                  "    pm.expect(jsonData.year).to.eql(2024);",
+                  "    pm.expect(jsonData.status).to.eql(\"available\");",
+                  "});",
+                  "",
+                  "// Save truck ID for later tests",
+                  "pm.environment.set(\"createdTruckId\", pm.response.json().id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehicleId\": \"{{testVehicleId}}\",\n  \"vin\": \"{{testVin}}\",\n  \"make\": \"Freightliner\",\n  \"model\": \"Cascadia\",\n  \"year\": 2024,\n  \"color\": \"White\",\n  \"engineMake\": \"Cummins\",\n  \"engineModel\": \"X15\",\n  \"horsepower\": 500,\n  \"transmissionType\": \"automatic\",\n  \"numGears\": 10,\n  \"ownershipType\": \"owned\",\n  \"purchaseDate\": \"2024-01-15\",\n  \"purchasePrice\": 150000,\n  \"licensePlate\": \"TRUCK123\",\n  \"issuingState\": \"CA\",\n  \"registrationExp\": \"2025-01-15\",\n  \"insurancePolicy\": \"POL123456\",\n  \"insuranceExp\": \"2025-01-15\",\n  \"jurisdiction\": \"IFTA\",\n  \"gvwr\": 80000,\n  \"gcwr\": 80000,\n  \"dotNumber\": \"DOT123456\",\n  \"initialStatus\": \"available\",\n  \"assignedYard\": \"Main Yard\",\n  \"initialOdometer\": 0,\n  \"initialOdometerUnit\": \"miles\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/trucks",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "trucks"]
+            }
+          }
+        },
+        {
+          "name": "Create Truck - Duplicate VehicleId",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 400\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test(\"Error message indicates duplicate vehicle ID\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.message).to.include(\"already exists\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehicleId\": \"{{testVehicleId}}\",\n  \"vin\": \"NEWVIN123456789\",\n  \"make\": \"Volvo\",\n  \"model\": \"VNL\",\n  \"year\": 2024\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/trucks",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "trucks"]
+            }
+          }
+        },
+        {
+          "name": "Create Truck - Empty VIN",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 400\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test(\"Error message indicates VIN cannot be empty\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.message).to.include(\"VIN must be between 1 and 255 characters\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehicleId\": \"T999\",\n  \"vin\": \"\",\n  \"make\": \"Mack\",\n  \"model\": \"Anthem\",\n  \"year\": 2024\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/trucks",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "trucks"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Get All Trucks",
+      "item": [
+        {
+          "name": "Get All Trucks - Success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has data array\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('data');",
+                  "    pm.expect(jsonData.data).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test(\"Trucks have correct structure\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.data.length > 0) {",
+                  "        const truck = jsonData.data[0];",
+                  "        pm.expect(truck).to.have.property('id');",
+                  "        pm.expect(truck).to.have.property('name'); // vehicleId",
+                  "        pm.expect(truck).to.have.property('type');",
+                  "        pm.expect(truck).to.have.property('status');",
+                  "        pm.expect(truck).to.have.property('currentLocation');",
+                  "        pm.expect(truck).to.have.property('year');",
+                  "        pm.expect(truck).to.have.property('vin');",
+                  "        pm.expect(truck).to.have.property('make');",
+                  "        pm.expect(truck).to.have.property('model');",
+                  "        pm.expect(truck).to.have.property('driverId');",
+                  "        pm.expect(truck).to.have.property('odometer');",
+                  "        pm.expect(truck).to.have.property('engineHours');",
+                  "        pm.expect(truck).to.have.property('attachedTrailerId');",
+                  "        pm.expect(truck).to.have.property('lastUpdated');",
+                  "    }",
+                  "});",
+                  "",
+                  "pm.test(\"Created truck is in the list\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    const createdTruckId = pm.environment.get(\"createdTruckId\");",
+                  "    const foundTruck = jsonData.data.find(truck => truck.id === createdTruckId);",
+                  "    pm.expect(foundTruck).to.not.be.undefined;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/trucks",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "trucks"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [""]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [""]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    }
+  ]
+}

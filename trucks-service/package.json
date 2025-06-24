@@ -18,6 +18,8 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
+    "test:e2e:postman": "newman run test/e2e/postman/trucks-api.postman_collection.json -e test/e2e/postman/trucks-api.postman_environment.json",
+    "test:e2e:postman:report": "newman run test/e2e/postman/trucks-api.postman_collection.json -e test/e2e/postman/trucks-api.postman_environment.json --reporters cli,html --reporter-html-export test/e2e/results/report.html",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
